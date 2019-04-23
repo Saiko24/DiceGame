@@ -13,17 +13,21 @@ public class PlayerBattle : MonoBehaviour {
     public CellGameObjectArray2d battleCellArray;
     public IntArray2d creaturesMapIntArray;
     public string playerDirection;
+    public StringVariable battlePhase;
+
 
     public void MovePlayer()
     {
-        BattleCell PlayerBattleCellScript = PlayerBattleCell.value.GetComponent<BattleCell>();
+            BattleCell PlayerBattleCellScript = PlayerBattleCell.value.GetComponent<BattleCell>();
 
-        ChooseDirection();
+            ChooseDirection();
 
-        gameObject.transform.position = PlayerBattleCell.value.transform.position;
-        playerHeightIndex = PlayerBattleCellScript.heightIndex;
-        playerWidthIndex = PlayerBattleCellScript.widthIndex;
-        playerMoves.ParameterValue = 0; 
+            gameObject.transform.position = PlayerBattleCell.value.transform.position;
+            playerHeightIndex = PlayerBattleCellScript.heightIndex;
+            playerWidthIndex = PlayerBattleCellScript.widthIndex;
+            playerMoves.ParameterValue = 0;
+
+            battlePhase.value = "attack";
     }
 
     public void ChooseDirection()
@@ -164,7 +168,7 @@ public class PlayerBattle : MonoBehaviour {
             case "back":
                 playerDirectionsImages[0].SetActive(true);
                 playerDirection = "back";
-            break;
+                break;
             case "front":
                 playerDirectionsImages[1].SetActive(true);
                 playerDirection = "front";
