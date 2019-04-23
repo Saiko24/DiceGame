@@ -18,6 +18,7 @@ public class BattleCell : MonoBehaviour {
     public bool selectable = false;
     public bool visited = false;
     public bool playerOnCell = false;
+    public bool enemyOnCell = false;
     public BattleCell parent = null;
     public int distance = 0;
     public CellGameObjectArray2d battleCellArray;
@@ -29,7 +30,13 @@ public class BattleCell : MonoBehaviour {
     public BoolVariable blockRaycast;
     public GameEvent clearSelectableCells;
     public GameObjectVariable PlayerBattleCell;
+    public GameObjectVariable selectedEnemy;
     public GameEvent movePlayer;
+    public GameEvent attackTip;
+    public IntVariable tipIndex;
+    public StringVariable battlePhase;
+    public GameEvent useSkill;
+    public EnemiesArray EnemiesArray;
     int index;
 
 
@@ -46,24 +53,6 @@ public class BattleCell : MonoBehaviour {
 
     }
 
-	void Update () {
-        if (walkable)
-        {
-            if (selectable)
-            {
-                cellSpriteImage.color = Color.red;
-            }
-            else if (battleCellType == "Obstacle")
-            {
-                cellSpriteImage.color = Color.black;
-            }
-            else
-            {
-                cellSpriteImage.color = Color.white;
-            }
-        }
-    }
-
     public void OnFingerTap(LeanFinger finger)
     {
         var ray = finger.GetWorldPosition(1.0f);
@@ -77,13 +66,28 @@ public class BattleCell : MonoBehaviour {
                 {
                     if (hit.gameObject == this.gameObject)
                     {
-                        PlayerMoveOnCell();
+                        if (battlePhase.value == "move")
+                        {
+                            PlayerMoveOnCell();
+                        }
+                        else if (battlePhase.value == "attack")
+                        {
+                            for (int i = 0; i < EnemiesArray.array.Count; i++)
+                            {
+                                if (heightIndex == EnemiesArray.array[i].enemyHeightIndex && widthIndex == EnemiesArray.array[i].enemyWidthIndex)
+                                {
+                                    selectedEnemy.value = EnemiesArray.array[i].gameObject;
+                                    useSkill.Raise();
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
         else
         {
+
         }
     }
 
@@ -128,24 +132,46 @@ public class BattleCell : MonoBehaviour {
         distance = 0;
     }
 
+	// Update is called once per frame
+	void Update () {
+    
+        if (battleCellType != "ObstacleWall")
+        {
+            cellSpriteImage.color = Color.white;
+        }
+
+        if (selectable && battlePhase.value == "attack")
+        {
+            cellSpriteImage.color = Color.red;
+        }
+        else if (selectable)
+        {
+            cellSpriteImage.color = Color.green;
+        }
+    }
+
+
     public void PlayerMoveOnCell()
     {
-            for (int i = 0; i < battleMapHeight.value; i++)
+        for (int i = 0; i < battleMapHeight.value; i++)
+        {
+            for (int y = 0; y < battleMapWidth.value; y++)
             {
-                for (int y = 0; y < battleMapWidth.value; y++)
-                {
-                    creaturesMapIntArray.array[i, y] = 0;
-                    battleCellArray.cellGameObjectArray[i, y].GetComponent<BattleCell>().playerOnCell = false;
-                }
+                creaturesMapIntArray.array[i, y] = 0;
+                battleCellArray.cellGameObjectArray[i, y].GetComponent<BattleCell>().playerOnCell = false;
             }
+        }
 
-            creaturesMapIntArray.array[heightIndex, widthIndex] = 1;
+        creaturesMapIntArray.array[heightIndex, widthIndex] = 1;
 
-            playerOnCell = true;
-            PlayerBattleCell.value = this.gameObject;
-            movePlayer.Raise();
+        playerOnCell = true;
+        PlayerBattleCell.value = this.gameObject;
+        movePlayer.Raise();
+        tipIndex.value = 5;
+        attackTip.Raise();
 
-            clearSelectableCells.Raise();
+        clearSelectableCells.Raise();
+
     }
 
 
